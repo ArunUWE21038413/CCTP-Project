@@ -335,17 +335,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3213a501235a3e846b576ac1bf1dd352, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  textureWidth: 256
-  textureHeight: 256
+  textureWidth: 100
+  textureHeight: 100
   scale: 20
   offsetX: 0
   offsetY: 0
   octaves: 1
   persistence: 0.5
   lacunarity: 2
+  isGreenland: 1
+  isCropland: 1
+  isPond: 1
+  greenlandPercentage: 0.8
+  croplandPercentage: 0.15
+  pondPercentage: 0.05
   showPreview: 1
-  autoUpdate: 0
-  build: 1
+  autoUpdate: 1
+  enableInBuild: 1
 --- !u!23 &1116099823
 MeshRenderer:
   m_ObjectHideFlags: 0
