@@ -314,8 +314,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1116099824}
   - component: {fileID: 1116099823}
-  - component: {fileID: 1116099822}
   - component: {fileID: 1116099825}
+  - component: {fileID: 1116099826}
   m_Layer: 0
   m_Name: Plane
   m_TagString: Untagged
@@ -323,35 +323,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1116099822
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1116099821}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3213a501235a3e846b576ac1bf1dd352, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  textureWidth: 100
-  textureHeight: 100
-  scale: 20
-  offsetX: 0
-  offsetY: 0
-  octaves: 1
-  persistence: 0.5
-  lacunarity: 2
-  isGreenland: 1
-  isCropland: 1
-  isPond: 1
-  greenlandPercentage: 0.8
-  croplandPercentage: 0.15
-  pondPercentage: 0.05
-  showPreview: 1
-  autoUpdate: 1
-  enableInBuild: 1
 --- !u!23 &1116099823
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -419,6 +390,35 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1116099821}
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1116099826
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1116099821}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3213a501235a3e846b576ac1bf1dd352, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  textureWidth: 256
+  textureHeight: 256
+  scale: 20
+  offsetX: 0
+  offsetY: 0
+  octaves: 1
+  persistence: 0.5
+  lacunarity: 2
+  isGreenland: 1
+  isCropland: 1
+  isPond: 1
+  greenlandPercentage: 0.8
+  croplandPercentage: 0.15
+  pondPercentage: 0.05
+  showPreview: 1
+  autoUpdate: 1
+  enableInBuild: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
