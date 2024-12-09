@@ -3,71 +3,28 @@ using UnityEngine;
 public class LowPolyPlane : MonoBehaviour
 {
     [Header("Mesh Settings")]
-    public int size = 50;             // Size of the terrain grid
+    public int size = 50; // Size of the terrain grid
 
     [Header("Noise Settings")]
-    public float noiseScale = 15f;    // Scaling factor for the noise
-    public int octaves = 4;           // Number of noise octaves
-    [Range(0f, 1f)]
-    public float persistence = 0.5f;  // Amplitude reduction per octave
-    public float lacunarity = 2f;     // Frequency increase per octave
-    public Vector2 noiseOffset;       // Offsets for the noise generation
+    public float noiseScale = 15f; // Scaling factor for the noise
+    public int octaves = 4; // Number of noise octaves
+    [Range(0f, 1f)] public float persistence = 0.5f; // Amplitude reduction per octave
+    public float lacunarity = 2f; // Frequency increase per octave
+    public Vector2 noiseOffset; // Offsets for the noise generation
 
     [Header("Terrain Settings")]
-    public float elevation = 5f;      // Maximum height variation
-    public Gradient terrainGradient;  // Gradient for terrain colors
-    public TextureType textureType = TextureType.Farmland; // Terrain texture type
-
-    [Header("Voronoi Farmland Settings")]
-    public int voronoiSeed = 40;       // Seed for Voronoi generation
-    public int numVoronoiSeeds = 21;   // Number of Voronoi regions
-    public Color farmlandColors;       // Color of farmland regions
+    public float elevation = 5f; // Maximum height variation
+    public int numVoronoiSeeds = 21; // Number of Voronoi regions
 
     private Mesh terrainMesh;
     private MeshRenderer meshRenderer;
-    private Vector2[] voronoiSeeds;    // Array to store Voronoi seed positions
-
-    public enum TextureType
-    {
-        Farmland,
-        Desert,
-        Forest,
-        // Add more textures as needed
-    }
+    private Vector2[] voronoiSeeds; // Array to store Voronoi seed positions
 
     void Start()
     {
         meshRenderer = GetComponent<MeshRenderer>();
-
-        // Initialize gradient in case it's not set in the Inspector
-        if (terrainGradient == null)
-        {
-            terrainGradient = new Gradient();
-            SetUpTerrainGradient();
-        }
-
-        // Generate Voronoi seeds
         GenerateVoronoiSeeds();
-
-        // Generate the mesh at the start
         GenerateMesh();
-    }
-
-    void SetUpTerrainGradient()
-    {
-        // Set up the terrain gradient with colors
-        terrainGradient.SetKeys(
-            new GradientColorKey[] {
-                new GradientColorKey(Color.green, 0f),        // Green for low elevation (e.g., flat ground)
-                new GradientColorKey(new Color(0.6f, 0.4f, 0.2f), 0.4f),  // Brown for middle elevation (e.g., hills)
-                new GradientColorKey(new Color(0.8f, 0.7f, 0.3f), 0.8f),  // Yellowish-brown for higher elevation (e.g., mountains)
-                new GradientColorKey(new Color(0.9f, 0.9f, 0.9f), 1f)     // Light beige for very high elevation (e.g., snow capped peaks)
-            },
-            new GradientAlphaKey[] {
-                new GradientAlphaKey(1f, 0f), // Fully opaque at the lowest elevation
-                new GradientAlphaKey(1f, 1f)  // Fully opaque at the highest elevation
-            }
-        );
     }
 
     void GenerateVoronoiSeeds()
@@ -98,7 +55,7 @@ public class LowPolyPlane : MonoBehaviour
             for (int y = 0; y < size; y++)
             {
                 int i = x + y * size;
-                float height = Mathf.PerlinNoise((x + noiseOffset.x) * noiseScale / size, (y + noiseOffset.y) * noiseScale / size) * elevation;
+                float height = GenerateFractalNoise(x, y) * elevation;
                 vertices[i] = new Vector3(x, height, y);
                 uvs[i] = new Vector2((float)x / size, (float)y / size);
             }
@@ -136,65 +93,32 @@ public class LowPolyPlane : MonoBehaviour
         {
             meshFilter.mesh = terrainMesh;
         }
-
-        // Apply terrain texture (using the Voronoi map for color patterns)
-        if (meshRenderer != null)
-        {
-            meshRenderer.material.mainTexture = CreateVoronoiTexture(); // Apply generated texture
-        }
     }
 
-    Texture2D CreateVoronoiTexture()
+    float GenerateFractalNoise(int x, int y)
     {
-        Texture2D texture = new Texture2D(size, size);
+        float amplitude = 1f;
+        float frequency = 1f;
+        float noiseHeight = 0f;
 
-        // Loop through each pixel and assign a color based on Voronoi region
-        for (int x = 0; x < size; x++)
+        for (int i = 0; i < octaves; i++)
         {
-            for (int y = 0; y < size; y++)
-            {
-                float minDist = Mathf.Infinity;
-                int closestSeed = -1;
+            float sampleX = (x + noiseOffset.x) * noiseScale * frequency / size;
+            float sampleY = (y + noiseOffset.y) * noiseScale * frequency / size;
 
-                // Find the nearest Voronoi seed
-                for (int i = 0; i < numVoronoiSeeds; i++)
-                {
-                    float dist = Vector2.Distance(new Vector2(x, y), voronoiSeeds[i]);
-                    if (dist < minDist)
-                    {
-                        minDist = dist;
-                        closestSeed = i;
-                    }
-                }
+            float perlinValue = Mathf.PerlinNoise(sampleX, sampleY);
+            noiseHeight += perlinValue * amplitude;
 
-                // Apply color based on the closest seed
-                Color color = GetVoronoiColor(closestSeed);
-                texture.SetPixel(x, y, color);
-            }
+            amplitude *= persistence; // Decrease amplitude for the next octave
+            frequency *= lacunarity; // Increase frequency for the next octave
         }
 
-        texture.Apply();
-        return texture;
-    }
-
-    Color GetVoronoiColor(int seedIndex)
-    {
-        // Return color based on the Voronoi region (for demonstration purposes)
-        // You can customize this function to return different colors based on the seed region
-        if (seedIndex == 0)
-            return Color.green; // Lowland (green)
-        else if (seedIndex == 1)
-            return new Color(0.6f, 0.4f, 0.2f); // Farmland (brown)
-        else if (seedIndex == 2)
-            return new Color(0.8f, 0.7f, 0.3f); // Mountain (yellowish-brown)
-        else
-            return new Color(0.9f, 0.9f, 0.9f); // Snow/Peak (light beige)
+        return Mathf.Clamp01(noiseHeight); // Clamp noise height to range [0, 1]
     }
 
     // Update method to tweak terrain in real-time during editing mode
     void Update()
     {
-        // Allow real-time adjustments to terrain properties while in scene view
         GenerateMesh();
     }
 }
