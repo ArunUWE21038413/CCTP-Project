@@ -8,20 +8,24 @@ public class MapGeneratorEditor : Editor {
 
         MapGenerator mapGenerator = (MapGenerator)target;
 
-        if (GUILayout.Button("Generate Terrain")) {
+        if (GUILayout.Button("Generate Map")) {
             mapGenerator.GenerateMap();
         }
 
-        if (GUILayout.Button("Spawn Height-Based Props")) {
+        if (GUILayout.Button("Spawn Height Props")) {
             mapGenerator.GenerateHeightProps();
         }
 
-        if (GUILayout.Button("Spawn Texture-Based Props")) {
+        if (GUILayout.Button("Clear Height Props")) {
+            mapGenerator.ClearAllHeightProps();
+        }
+
+        if (GUILayout.Button("Spawn Texture Props")) {
             mapGenerator.GenerateTextureProps();
         }
 
-        if (GUILayout.Button("Clear All Props")) {
-            mapGenerator.ClearAllProps();
+        if (GUILayout.Button("Clear Texture Props")) {
+            mapGenerator.ClearAllTextureProps();
         }
     }
 }

@@ -34,7 +34,6 @@ public class MapGenerator : MonoBehaviour {
     [Header("General Settings")]
     [SerializeField] private bool autoUpdate = true; // If true, auto-update map on validate
     [SerializeField] private Texture2D mapTexture;
-    [SerializeField] private Transform propHolder; // Parent transform for instantiated props
     [SerializeField] private TextureBasedPropPlacementType textureBasedPropPlacementType = TextureBasedPropPlacementType.Inner;
 
     [Header("Mesh Settings")]
@@ -65,9 +64,11 @@ public class MapGenerator : MonoBehaviour {
     [SerializeField] private Vector2 offset; // Offset for the noise map
 
     [Header("Height Based Prop Placement Settings")]
+    [SerializeField] private Transform heightPropHolder; // Parent transform for instantiated props
     [SerializeField] private MapProp[] heightBasedProps; // Array of map props
 
     [Header("Texture Based Prop Placement Settings")]
+    [SerializeField] private Transform texturePropHolder; // Parent transform for instantiated props
     [SerializeField, Range(0f, 255f)] private float colorRange = 20f;
     [SerializeField] private Color selectedColor = Color.white;
     [SerializeField] private MapProp[] textureBasedProps;
@@ -100,7 +101,7 @@ public class MapGenerator : MonoBehaviour {
                 foreach (MapProp prop in heightBasedProps) {
                     // Check if the current position is within the prop's height range and meets density criteria
                     if (IsWithinHeightRange(x, z, prop) && Random.value <= prop.density / 10f) {
-                        SpawnProp(x, z, prop); // Spawn the prop at the position
+                        SpawnHeightProp(x, z, prop); // Spawn the prop at the position
                     }
                 }
             }
@@ -112,10 +113,10 @@ public class MapGenerator : MonoBehaviour {
         return height >= prop.height.minimum && height <= prop.height.maximum; // Check if within range
     }
 
-    private void SpawnProp(int x, int z, MapProp prop) {
+    private void SpawnHeightProp(int x, int z, MapProp prop) {
         int vertexIndex = (z * (xSize + 1)) + x; // Calculate vertex index
-        Vector3 position = (mesh.vertices[vertexIndex] * sizeMultiplier) + propHolder.position; // Determine prop position
-        GameObject instance = Instantiate(prop.prefab, position, prop.GetRandomRotation(), propHolder); // Instantiate the prop
+        Vector3 position = (mesh.vertices[vertexIndex] * sizeMultiplier) + heightPropHolder.position; // Determine prop position
+        GameObject instance = Instantiate(prop.prefab, position, prop.GetRandomRotation(), heightPropHolder); // Instantiate the prop
         instance.transform.localScale = prop.GetRandomSize(); // Set prop scale
     }
 
@@ -289,8 +290,11 @@ public class MapGenerator : MonoBehaviour {
 
         Vector3 offsetPosition = new Vector3(-(xSize / 2f), 0f, -(zSize / 2f)) * sizeMultiplier; // Center mesh
         meshTransform.localPosition = offsetPosition; // Offset position
-        propHolder.localPosition = offsetPosition; // Offset props holder position
+
         meshTransform.localScale = Vector3.one * sizeMultiplier; // Scale mesh
+
+        heightPropHolder.localPosition = offsetPosition; // Offset props holder position
+        texturePropHolder.localPosition = offsetPosition; // Offset props holder position
     }
 
     private List<Vector2Int> GetNeighborOffsets(int x, int y, int textureWidth, int textureHeight) {
@@ -376,7 +380,7 @@ public class MapGenerator : MonoBehaviour {
 
     private void SpawnTextureProp(int x, int y, MapProp prop) {
         Vector3 worldPos = TextureToWorldPosition(x, y);
-        GameObject instance = Instantiate(prop.prefab, worldPos, prop.GetRandomRotation(), propHolder);
+        GameObject instance = Instantiate(prop.prefab, worldPos, prop.GetRandomRotation(), texturePropHolder);
         instance.transform.localScale = prop.GetRandomSize();
     }
 
@@ -402,8 +406,14 @@ public class MapGenerator : MonoBehaviour {
         return heightCurve.Evaluate(baseHeight) * heightMultiplier * sizeMultiplier;
     }
 
-    public void ClearAllProps() {
-        foreach (Transform child in propHolder) {
+    public void ClearAllHeightProps() {
+        foreach (Transform child in heightPropHolder) {
+            DestroyImmediate(child.gameObject);
+        }
+    }
+
+    public void ClearAllTextureProps() {
+        foreach (Transform child in texturePropHolder) {
             DestroyImmediate(child.gameObject);
         }
     }
