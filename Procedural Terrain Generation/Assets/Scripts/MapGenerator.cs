@@ -4,13 +4,16 @@ using UnityEngine;
 public class MapGenerator : MonoBehaviour
 {
     // Enum to define where props should be placed based on texture color (Outer or Inner)
+    [Tooltip("Determines how props are placed based on texture: Outer (edges) or Inner (throughout)")]
     public enum TextureBasedPropPlacementType { Outer, Inner }
 
     // Structure for defining a range of values (e.g., height, size, rotation)
     [System.Serializable]
     public struct Range
     {
+        [Tooltip("Minimum value of the range")]
         public float minimum;
+        [Tooltip("Maximum value of the range")]
         public float maximum;
 
         // Returns a random value within the defined range
@@ -25,13 +28,19 @@ public class MapGenerator : MonoBehaviour
     public class MapProp
     {
         [Header("Prop Settings")]
+        [Tooltip("Identifier for this prop type")]
         public string name;  // Name of the prop
+        [Tooltip("How frequently this prop appears (0-1)")]
         [Range(0f, 1f)] public float density; // Determines how frequently the prop appears
+        [Tooltip("The GameObject to instantiate for this prop")]
         public GameObject prefab; // The object to spawn
 
         [Header("Object Settings")]
+        [Tooltip("Height range where this prop can spawn")]
         public Range height; // Height range of the prop
+        [Tooltip("Size range for random scaling")]
         public Range size; // Size range of the prop
+        [Tooltip("Rotation range in degrees")]
         public Range rotation; // Rotation range of the prop
 
         // Returns a random size for the prop
@@ -49,66 +58,102 @@ public class MapGenerator : MonoBehaviour
 
     // ========== General Settings ==========
     [Header("General Settings")]
+    [Tooltip("If enabled, the map will automatically update when settings change")]
     [SerializeField] bool autoUpdate = true; // Auto-generates map when settings change
+    [Tooltip("Reference texture used for color-based prop placement")]
     [SerializeField] Texture2D mapTexture; // Texture used for prop placement
+    [Tooltip("Whether to place texture-based props inside regions or along edges")]
     [SerializeField] TextureBasedPropPlacementType textureBasedPropPlacementType = TextureBasedPropPlacementType.Inner; // Placement type for texture-based props
 
     // ========== Mesh Settings ==========
     [Header("Mesh Settings")]
+    [Tooltip("Width of the terrain mesh in vertices")]
     [SerializeField, Range(1, 255)] int xSize = 255; // Width of the terrain
+    [Tooltip("Length of the terrain mesh in vertices")]
     [SerializeField, Range(1, 255)] int zSize = 255; // Depth of the terrain
+    [Tooltip("Scale multiplier for the entire terrain")]
     [SerializeField, Range(1f, 10f)] float sizeMultiplier = 5f; // Scale multiplier for the terrain
+    [Tooltip("Transform reference for the terrain mesh")]
     [SerializeField] Transform meshTransform; // Transform that holds the terrain mesh
 
     // ========== Noise Settings ==========
     [Header("Noise Settings")]
+    [Tooltip("Number of octaves for Perlin noise (more octaves = more detail)")]
     [SerializeField, Range(1, 10)] int octaves = 6; // Number of layers in the noise generation
+    [Tooltip("Overall scale of the noise pattern (higher = smaller features)")]
     [SerializeField, Range(1f, 100f)] float noiseScale = 50f; // Controls terrain detail
+    [Tooltip("How much each octave contributes to the total (lower = smoother terrain)")]
     [SerializeField, Range(0f, 1f)] float persistence = 0.5f; // Controls amplitude of each octave
+    [Tooltip("How frequency increases with each octave (higher = more small details)")]
     [SerializeField, Range(0f, 2f)] float lacunarity = 2f; // Controls frequency of each octave
 
     // ========== Height Settings ==========
     [Header("Height Settings")]
+    [Tooltip("Vertical scale of the terrain")]
     [SerializeField] float heightMultiplier = 10f; // Multiplier for terrain height
+    [Tooltip("Curve that remaps noise values to create more interesting terrain shapes")]
     [SerializeField] AnimationCurve heightCurve; // Curve to modify height variation
+    [Tooltip("Color gradient used to visualize height on the terrain")]
     [SerializeField] Gradient heightGradient; // Gradient for coloring terrain based on height
 
     // ========== Falloff Settings ==========
     [Header("Falloff Settings")]
+    [Tooltip("If enabled, terrain will be flatter in the center and slope down at the edges")]
     [SerializeField] bool useFalloff = true; // Enables falloff effect
+    [Tooltip("Distance from center where falloff begins (0-1)")]
     [SerializeField, Range(0f, 1f)] float falloffStart = 0.5f; // Start intensity for falloff
+    [Tooltip("Distance from center where falloff reaches minimum height (0-1)")]
     [SerializeField, Range(0f, 1f)] float falloffEnd = 1f; // End intensity for falloff
 
     // ========== Seed Settings ==========
     [Header("Seed Settings")]
+    [Tooltip("If enabled, a random seed will be used each time the map is generated")]
     [SerializeField] bool randomSeed; // If true, generates a random seed
+    [Tooltip("Seed value for noise generation (same seed = same terrain)")]
     [SerializeField] int seed; // Manual seed value
+    [Tooltip("Offset applied to noise sampling coordinates")]
     [SerializeField] Vector2 offset; // Offset for noise generation
 
     // ========== Prop Placement Settings ==========
     [Header("Height Based Prop Placement Settings")]
+    [Tooltip("Parent transform where height-based props will be created")]
     [SerializeField] Transform heightPropHolder; // Parent object for height-based props
+    [Tooltip("Props to be placed based on terrain height")]
     [SerializeField] MapProp[] heightBasedProps; // Props placed based on height
 
     [Header("Texture Based Prop Placement Settings")]
+    [Tooltip("Parent transform where texture-based props will be created")]
     [SerializeField] Transform texturePropHolder; // Parent object for texture-based props
+    [Tooltip("Color matching tolerance (higher = more lenient matching)")]
     [SerializeField, Range(0f, 255f)] float colorRange = 20f; // Color range for matching texture colors
+    [Tooltip("Colors to match when placing texture-based props")]
     [SerializeField] Color[] selectedColors; // Colors used to place texture-based props
+    [Tooltip("Props to be placed based on texture colors")]
     [SerializeField] MapProp[] textureBasedProps; // Props placed based on texture color
 
     // ========== Paint Settings ==========
     [Header("Paint Settings")]
+    [Tooltip("Texture used to store paint information")]
     [SerializeField] Texture2D paintMap; // Stores paint information for terrain
+    [Tooltip("Resolution of the paint map texture")]
     [SerializeField] int paintMapSize = 128; // Resolution of the paint map
+    [Tooltip("If enabled, paint will be visualized in the editor")]
     [SerializeField] bool showPaintPreview = true; // Toggles paint preview
+    [Tooltip("If enabled, props will be removed when painting over them")]
     public bool removePropsWhilePainting = true; // Removes props if painting over them
+    [Tooltip("Multiplier for the brush radius when removing props")]
     public float propRemovalRadius = 1f; // Determines how much area is cleared when painting
 
     // ========== Internal Variables ==========
+    [Tooltip("2D array storing the height values for the terrain")]
     float[,] noiseMap; // Stores terrain height data
+    [Tooltip("2D array storing falloff values for the terrain edges")]
     float[,] falloffMap; // Stores falloff effect data
+    [Tooltip("Reference to the generated terrain mesh")]
     Mesh mesh; // Stores generated mesh
+    [Tooltip("Whether the paint map has been initialized")]
     bool isPaintMapInitialized = false; // Tracks if paint map is ready
+    [Tooltip("Reference to the terrain material")]
     Material terrainMaterial; // Stores the terrain material reference
 
     // ========== Unity Methods ==========
